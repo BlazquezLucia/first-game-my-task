@@ -64,7 +64,7 @@ export default class Game extends Phaser.Scene {
     });
 
     this.cursors = this.input.keyboard.createCursorKeys();
-
+    this.rKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
     this.stars = this.physics.add.group({
       key: "star",
       repeat: 11,
@@ -89,6 +89,12 @@ export default class Game extends Phaser.Scene {
 
     this.physics.add.collider(this.stars, this.platforms);
 
+    this.timeLimit = 30;
+    this.timeText = this.add.text(16, 50, "Time:"+ this.timeLimit, {
+      fontSize: "32px",
+      fill: "#000",
+    });
+
     this.physics.add.overlap(
       this.player,
       this.stars,
@@ -96,6 +102,12 @@ export default class Game extends Phaser.Scene {
       null,
       this
     );
+    this.time.addEvent({
+      delay: 1000,
+      callback: this.timeCountDown,
+      callbackScope: this,
+      loop: true,
+    });
 
     this.physics.add.collider(
       this.player,
@@ -121,10 +133,30 @@ export default class Game extends Phaser.Scene {
 
       this.player.anims.play("turn");
     }
+    if (this.gameOver) {
+      this.gameOverText = this.add.text(250, 270, "Game Over", {
+        fontSize: "64px",
+        fill: "#000",
+      });
+    }
+    if (this.rKey.isDown) {
+      this.scene.start("game");
+    } 
 
     if (this.cursors.up.isDown && this.player.body.touching.down) {
       this.player.setVelocityY(-330);
     }
+  }
+  timeCountDown() {
+    
+    if (this.timeLimit > 0) {
+      this.timeLimit -= 1;
+     this.timeText.setText("Time: " + this.timeLimit);
+    }else {
+      this.gameOver = true;
+      this.physics.pause();
+    }
+
   }
 
   collectStar(player, star) {
